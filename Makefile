@@ -25,14 +25,13 @@ else
 endif
 endif # TARGET_OS
 
+ARCHIVE ?= tar
 # OS-specific settings and build flags
-ifeq ($(TARGET_OS),windows)
-	ARCHIVE ?= zip
+ifeq ($(TARGET_OS),win32)
 	TARGET := mklittlefs.exe
 	TARGET_CFLAGS = -mno-ms-bitfields
 	TARGET_LDFLAGS = -Wl,-static -static-libgcc -static-libstdc++
 else
-	ARCHIVE ?= tar
 	TARGET := mklittlefs
 endif
 
