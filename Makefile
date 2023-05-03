@@ -31,8 +31,16 @@ ifeq ($(TARGET_OS),win32)
 	TARGET := mklittlefs.exe
 	TARGET_CFLAGS = -mno-ms-bitfields
 	TARGET_LDFLAGS = -Wl,-static -static-libgcc -static-libstdc++
+	FILES_TO_FORMAT := $(shell for /f "delims=" %%i in ('dir /s /b *.c *.cpp ^| findstr /v /i littlefs') do @echo %%i)
+	COPY_CMD = copy
+	RM_CMD = del /Q /F
+	PATH_SEP = \\
 else
 	TARGET := mklittlefs
+	FILES_TO_FORMAT := $(shell find . -not -path './littlefs/*' \( -name '*.c' -o -name '*.cpp' \))
+	COPY_CMD = cp
+	RM_CMD = rm -f
+	PATH_SEP = /
 endif
 
 # Packaging into archive (for 'dist' target)
@@ -52,17 +60,19 @@ LITTLEFS_VERSION := $(shell git -C ../src/littlefs describe --tags || echo "unkn
 BUILD_CONFIG_NAME ?= -generic
 
 OBJ		:= main.o \
-		   ../src/littlefs/lfs.o \
-		   ../src/littlefs/lfs_util.o
+		   ..$(PATH_SEP)src$(PATH_SEP)littlefs$(PATH_SEP)lfs.o \
+		   ..$(PATH_SEP)src$(PATH_SEP)littlefs$(PATH_SEP)lfs_util.o
 
 INCLUDES := -Itclap -Iinclude -Ilittlefs -I. -I ../src
-
-FILES_TO_FORMAT := $(shell find . -not -path './littlefs/*' \( -name '*.c' -o -name '*.cpp' \))
 
 DIFF_FILES := $(addsuffix .diff,$(FILES_TO_FORMAT))
 
 # clang doesn't seem to handle -D "ARG=\"foo bar\"" correctly, so replace spaces with \x20:
-BUILD_CONFIG_STR := $(shell echo $(CPPFLAGS) | sed 's- -\\\\x20-g')
+ifeq ($(TARGET_OS),win32)
+	BUILD_CONFIG_STR := $(shell powershell -NoProfile -Command "(\"$(CPPFLAGS)\" -replace ' ', '\\\\x20')")
+else
+	BUILD_CONFIG_STR := $(shell echo $(CPPFLAGS) | sed 's- -\\\\x20-g')
+endif
 
 LFS_NAME_MAX ?= 32
 
@@ -89,8 +99,8 @@ all: $(TARGET)
 dist: $(DIST_ARCHIVE)
 
 $(DIST_ARCHIVE): $(TARGET) $(DIST_DIR)
-	cp $(TARGET) $(DIST_DIR)/
-	$(ARCHIVE_CMD) $(DIST_ARCHIVE) $(DIST_DIR)
+	$(COPY_CMD) $(TARGET) "$(DIST_DIR)/"
+	$(ARCHIVE_CMD) $(DIST_ARCHIVE) "$(DIST_DIR)"
 
 $(TARGET): $(OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS)
@@ -100,9 +110,9 @@ $(DIST_DIR):
 	@mkdir -p $@
 
 clean:
-	@rm -f $(TARGET) $(OBJ) $(DIFF_FILES)
+	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES)
 
 format-check: $(DIFF_FILES)
-	@rm -f $(DIFF_FILES)
+	@$(RM_CMD) $(DIFF_FILES)
 
 .PHONY: all clean dist format-check
