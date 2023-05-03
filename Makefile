@@ -64,6 +64,8 @@ DIFF_FILES := $(addsuffix .diff,$(FILES_TO_FORMAT))
 # clang doesn't seem to handle -D "ARG=\"foo bar\"" correctly, so replace spaces with \x20:
 BUILD_CONFIG_STR := $(shell echo $(CPPFLAGS) | sed 's- -\\\\x20-g')
 
+LFS_NAME_MAX ?= 32
+
 override CPPFLAGS := \
 	$(INCLUDES) \
 	-D VERSION=\"$(VERSION)\" \
@@ -71,7 +73,7 @@ override CPPFLAGS := \
 	-D BUILD_CONFIG=\"$(BUILD_CONFIG_STR)\" \
 	-D BUILD_CONFIG_NAME=\"$(BUILD_CONFIG_NAME)\" \
 	-D __NO_INLINE__ \
-	-D LFS_NAME_MAX=32 \
+	-D LFS_NAME_MAX=$(LFS_NAME_MAX) \
 	$(CPPFLAGS)
 
 override CFLAGS := -std=gnu99 -Os -Wall $(TARGET_CFLAGS) $(CFLAGS)
