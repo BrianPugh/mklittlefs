@@ -35,6 +35,7 @@ ifeq ($(TARGET_OS),win32)
 	COPY_CMD = copy
 	RM_CMD = del /Q /F
 	MKDIR_CMD = mkdir
+	RMDIR_CMD = rmdir /Q /S
 	CMDQUIET = >nul 2>nul & verify >nul
 	PATH_SEP = \\
 else
@@ -43,6 +44,7 @@ else
 	COPY_CMD = cp
 	RM_CMD = rm -f
 	MKDIR_CMD = mkdir -p
+	RMDIR_CMD = rm -rf
 	PATH_SEP = /
 endif
 
@@ -115,7 +117,11 @@ $(DIST_DIR):
 clean:
 	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES) $(CMDQUIET)
 
+fullclean:
+	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES) $(DIST_ARCHIVE) $(CMDQUIET)
+	@$(RMDIR_CMD) $(DIST_DIR) $(CMDQUIET)
+
 format-check: $(DIFF_FILES)
 	@$(RM_CMD) $(DIFF_FILES)
 
-.PHONY: all clean dist format-check
+.PHONY: all clean fullclean dist format-check
