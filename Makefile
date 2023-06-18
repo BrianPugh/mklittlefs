@@ -34,12 +34,14 @@ ifeq ($(TARGET_OS),win32)
 	FILES_TO_FORMAT := $(shell for /f "delims=" %%i in ('dir /s /b *.c *.cpp ^| findstr /v /i littlefs') do @echo %%i)
 	COPY_CMD = copy
 	RM_CMD = del /Q /F
+	MKDIR_CMD = mkdir
 	PATH_SEP = \\
 else
 	TARGET := mklittlefs
 	FILES_TO_FORMAT := $(shell find . -not -path './littlefs/*' \( -name '*.c' -o -name '*.cpp' \))
 	COPY_CMD = cp
 	RM_CMD = rm -f
+	MKDIR_CMD = mkdir -p
 	PATH_SEP = /
 endif
 
@@ -107,7 +109,7 @@ $(TARGET): $(OBJ)
 	$(STRIP) $(TARGET)
 
 $(DIST_DIR):
-	@mkdir -p $@
+	@$(MKDIR_CMD) $@
 
 clean:
 	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES)
