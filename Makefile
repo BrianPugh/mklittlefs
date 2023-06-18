@@ -35,6 +35,7 @@ ifeq ($(TARGET_OS),win32)
 	COPY_CMD = copy
 	RM_CMD = del /Q /F
 	MKDIR_CMD = mkdir
+	CMDQUIET = >nul 2>nul & verify >nul
 	PATH_SEP = \\
 else
 	TARGET := mklittlefs
@@ -112,7 +113,7 @@ $(DIST_DIR):
 	@$(MKDIR_CMD) $@
 
 clean:
-	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES)
+	@$(RM_CMD) $(TARGET) $(OBJ) $(DIFF_FILES) $(CMDQUIET)
 
 format-check: $(DIFF_FILES)
 	@$(RM_CMD) $(DIFF_FILES)
